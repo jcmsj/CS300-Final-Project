@@ -14,8 +14,8 @@ class RegularGrammar:
         self.terminals = terminals
         self.productions = productions
         self.start_symbol = start_symbol
-        self.re_non = re.compile("|".join(self.nonterminals))
-
+        self.nonterminals_regex = re.compile("|".join(self.nonterminals))
+        self.validate_productions()
     def generate(self):
         string = self.start_symbol
         done = False
@@ -30,21 +30,14 @@ class RegularGrammar:
         return string
     
     def test(self, input_str:str):
-        if not self.valid_terminals(input_str):
-            raise SyntaxError("input contains values not in the terminals")
-        if not self.validate_productions():
-            raise SyntaxError("Productions contain keys not in the nonterminals")
-
-        # try to derive the 'input' from the self.productions
+  
+        self.validate_terminals(input_str)
         d = self.start_symbol
-        # S
-        # S -> aSb
-     
+        # try to derive the 'input' from the self.productions
         while d != input_str:
             for i, char in enumerate(d):
-                # Note: No need to check if char is a nonterminal.
                 if char in self.productions:
-                    d = self.replace_with_rule(d, self.productions[char], i, input_str)
+                    d = self.try_rules(d, self.productions[char], i, input_str)
                     if d == None:
                         return False
                     else:
@@ -52,12 +45,14 @@ class RegularGrammar:
                         # means that the rule is a terminal
             
         return True
-    def replace(self, base:str, rule, i):
+    
+    # Replaces the char at i with the rule
+    def replace(self, base:str, rule:str, i:int):
         _d = list(base)
         _d[i] = rule
         return "".join(_d)
     
-    def replace_with_rule(self, base:str, rules:list[str], index:str, input_str:str):
+    def try_rules(self, base:str, rules:list[str], index:str, input_str:str):
         for rule in rules:
             if rule in self.terminals:
                 d = self.replace(base, rule, index)
@@ -72,76 +67,101 @@ class RegularGrammar:
             if len(d) > len(input_str):
                 continue
 
-            splitted = self.re_non.split(d, 2)
-            [prefix, suffix] = splitted # assured to be ['' or an str, '' or an str]
+            # assured to be ['' or an str, '' or an str]
+            [prefix, suffix]= self.nonterminals_regex.split(d, 2)
+
+            # If the prefix/suffix of the new string matches that of the input, then we're in the right track
             if (input_str.startswith(prefix) and input_str.endswith(suffix)):
                 return d
-            else:
+            else: # try next rule
                 continue
 
         return None
 
     def validate_productions(self):
         # simply check if the two sets are equal
-        return self.productions.keys() == self.nonterminals
-    def valid_terminals(self, input:str):
-        for char in input:
+        if self.productions.keys() == self.nonterminals:
+            return True
+        extra_production = self.productions.keys() - self.nonterminals
+        if len(extra_production) > 0:
+            raise Exception(f"{extra_production} are not members of the nonterminals {self.nonterminals}")
+        
+        unused_nonterminals = self.nonterminals - self.productions.keys()
+        if len(unused_nonterminals) > 0:
+            raise Exception(f"{unused_nonterminals} are never used in the production rules")
+        
+    def validate_terminals(self, input_str:str):
+        for char in input_str:
             if char not in self.terminals:
-                return False
-            
+                raise Exception(f"{char} is not a member of the terminals {self.terminals}")
+        # TODO: check if the terminals are used in the production rules
+        # TODO: check if there are terminals in the production rules that are not listed in the self.terminals
+
         return True
 
-# grammar = RegularGrammar(
-    # nonterminals={
-        # "S"
-    # },
-    # terminals={
-        # "a", 
-        # "b", 
-    # },
-    # productions={
-        # "S": ["aSb", "b", "bA"],
-        # "A": ["cS"]
-    # },
-    # start_symbol="S",
+def main():
+    '''Run if main module'''
+    # grammar = RegularGrammar(
+#     nonterminals={
+#         "S",
+#         "A"
+#     },
+#     terminals={
+#         "a", 
+#         "b",
+#         "c",
+#     },
+#     productions={
+#         "S": ["aSb", "b", "bA"],
+#         "A": ["cS"]
+#     },
+#     start_symbol="S"
 # )
+    # String that ends with b over {a,b}
+    # Description: a's followed by b's that is one more than a, there can be 0 number of a's
+    # examples: ab abb abbb
+    letter_as_followed_by_letter_bs = RegularGrammar(
+        nonterminals={
+            "S",
+        },
+        terminals={
+            "a", 
+            "b",
+        },
+        productions={
+            "S": ["aSb", "b"],
+        },
+        start_symbol="S",
+    )
 
-# Generate a string from the grammar.
-# string = grammar.generate()
+    endswithD = RegularGrammar(
+        nonterminals={
+            "S"
+        },
+        terminals={
+            "a", 
+            "b",
+            "c",
+            "d" 
+        },
+        productions={
+            "S": ["aS", "bS", "cS", "dS","d"],
+        },
+        start_symbol="S",
+    )
 
-# String that ends with b over {a,b}
-# ab abb abbb
-grammar = RegularGrammar(
-    nonterminals={
-        "S"
-    },
-    terminals={
-        "a", 
-        "b", 
-    },
-    productions={
-        "S": ["aSb", "b"],
-    },
-    start_symbol="S",
-)
-#  T, T, F, T, F
-print([grammar.test(s) for s in ['b', 'abb', 'ab', 'aabbb', 'ba']])
+    example = input("Choose example: \n[0] grammar that ends with d over {a,b,c,d}\n[1] a's followed by b's that is one more than a, there can be 0 number of a's \n> ")
+    grammar = endswithD if example == '0'  else letter_as_followed_by_letter_bs
+    if example == '0':
+        # T T F F T
+        print({s:grammar.test(s) for s in ['d', 'abd', 'ab', 'aabbb', 'bad']})
+    elif example == '1':
+        #  T T F T F
+        print({s:grammar.test(s) for s in ['b', 'abb', 'ab', 'aabbb', 'ba']})
 
-endswithD = RegularGrammar(
-    nonterminals={
-        "S"
-    },
-    terminals={
-        "a", 
-        "b",
-        "c",
-        "d" 
-    },
-    productions={
-        "S": ["aS", "bS", "cS", "dS","d"],
-    },
-    start_symbol="S",
-)
+    for sample in [grammar.generate() for _ in range(100)]:
+        print(sample)
 
-print(endswithD.test("accd"))
-print([endswithD.generate() for i in range(100)])
+if __name__ == '__main__':
+    main()
+
