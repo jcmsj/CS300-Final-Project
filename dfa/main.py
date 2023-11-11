@@ -70,9 +70,9 @@ def main():
             print("Path:")
             print(pretty_path(path))
             if status:
-                print("Conclusion: accepted")
+                print("Conclusion: Accepted")
             else:
-                print(f"Conclusion: rejeected")
+                print(f"Conclusion: Rejected")
            
 
         case _:
