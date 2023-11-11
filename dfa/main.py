@@ -51,8 +51,8 @@ def check(Q:set[str], sigma:set[str], delta:dict[str, dict[str,str|None]], start
     return state in F, path
 
 def pretty_path(path:list[tuple[str, str] | str]):
-    """Pretty print the path taken by the DFA"""
-    """example output: q0 -> 1 -> q1 -> 1 -> q2"""
+    """Pretty print the path taken by the DFA
+    Example output:\n q0, 1 -> q1, 1 -> q2"""
     return " -> ".join([f"{f'{p[0]}, {p[1]}' if type(p) == tuple else p}" for p in path])
 
 def read_json_file(filepath: str) -> dict:

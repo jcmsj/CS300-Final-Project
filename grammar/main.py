@@ -138,4 +138,3 @@ def main():
             print("Usage:\nTo test a string:\n  python main.py -grammar <grammar_file_path> -input <input_str>\nTo generate sample strings:\n  python main.py -grammar <grammar_file_path> -sample <count>")
 if __name__ == '__main__':
     main()
-
