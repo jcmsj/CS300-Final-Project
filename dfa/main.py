@@ -13,7 +13,7 @@ def check(Q:set[str], sigma:set[str], delta:dict[str, dict[str,str|None]], start
     # check that all states are in the transition function
     q_complement = Q - delta.keys()
     if len(q_complement) > 0:
-        raise Exception(f"States {q_complement} ae unused in the the transition function")
+        raise Exception(f"States {q_complement} are unused in the the transition function")
     # and that all states in the transition function are in the set of states
     delta_complement = delta.keys() - Q
     if len(delta_complement) > 0:

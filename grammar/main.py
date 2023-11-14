@@ -55,7 +55,7 @@ class RegularGrammar:
         _d[i] = rule
         return "".join(_d)
     
-    def try_rules(self, base:str, rules:list[str], index:str, input_str:str):
+    def try_rules(self, base:str, rules:list[str], index:int, input_str:str):
         """Tries every rule until it finds one that matches the input_str or its prefix and suffix.\n
         Returns the rule and the new string if it matches the input_str,\n otherwise returns None"""
         for rule in rules:
@@ -132,7 +132,7 @@ def main():
         case [_, "-grammar", filepath, "-sample", count] | [_, "-g", filepath, "-s", count]:
             run_sample(
                 RegularGrammar(**read_json_file(filepath)), 
-                count
+                int(count)
             )
         case _:
             print("Usage:\nTo test a string:\n  python main.py -grammar <grammar_file_path> -input <input_str>\nTo generate sample strings:\n  python main.py -grammar <grammar_file_path> -sample <count>")
