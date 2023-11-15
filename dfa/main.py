@@ -60,35 +60,38 @@ def read_json_file(filepath: str) -> dict:
         data = json.load(f, )
     return data
 
+def cli():
+    import argparse
+    parser = argparse.ArgumentParser(description='A program that can validate strings using a Deterministic Finite Automata')
+    parser.add_argument('-dfa', '--dfa', type=str, help='filepath to the DFA json file')
+    parser.add_argument('-i', '--input', type=str, help='input string')
+
+    return parser.parse_args(), parser
 def main():
     '''Run if main module'''
     """Note: the included sample.json is a DFA that accepts binary strings that starts and ends with 1 having zero or more 0s in between"""
     "or simply in REGEX:: 10*1"
-    match argv:
-        case [_, "-dfa", dfa_filepath, "-i", input_str]:
-            DFA = read_json_file(dfa_filepath)
-            print("DFA:")
-            # Pretty print the dfa
-            print(json.dumps(DFA, indent=2))
-
-            status, path = check(
-                Q=set(DFA["states"]),
-                sigma=set(DFA["alphabet"]),
-                delta=DFA["transition_function"],
-                start=DFA["start_state"],
-                F=set(DFA["accept_states"]),
-                input_str=input_str
-            )
-            print(f"Input:\n{input_str}")
-            print("Path:")
-            print(pretty_path(path))
-            if status:
-                print("Conclusion: Accepted")
-            else:
-                print(f"Conclusion: Rejected")
-           
-        case _:
-            print("Usage: python -dfa <dfa_filepath> -i <input_str>")
+    args, argparser = cli()
+    if args.dfa and args.input:
+        DFA = read_json_file(args.dfa)
+        status, path = check(
+            Q=set(DFA["states"]),
+            sigma=set(DFA["alphabet"]),
+            delta=DFA["transition_function"],
+            start=DFA["start_state"],
+            F=set(DFA["accept_states"]),
+            input_str=args.input
+        )
+        print(f"Input:\n{args.input}")
+        print("Path:")
+        print(pretty_path(path))
+        if status:
+            print("Conclusion: Accepted")
+        else:
+            print(f"Conclusion: Rejected")
+        return
+    
+    argparser.print_help()
 
 if __name__ == '__main__':
     main()

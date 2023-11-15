@@ -110,31 +110,45 @@ def read_json_file(filepath: str) -> dict:
     return data
 
 def run_sample(g: RegularGrammar, count:int):
-    print(f"{count} sample strings:")
-    for i in range(int(count)):
-        print(g.generate())
+    print(f"{count} unique sample strings:")
+    unique: set[str] = set()
+
+    while len(unique) < count:
+        unique.add(g.generate())
+    for i, string in enumerate(unique):
+        print(f"{i+1}) {string}")
+
+def cli():
+    import argparse
+    parser = argparse.ArgumentParser(description='A program that can validate and generate strings from a Regular Grammar')
+    parser.add_argument('-g', '--grammar', type=str, help='filepath to the Regular Grammar json file')
+    parser.add_argument('-i', '--input', type=str, help='input string to validate')
+    parser.add_argument('-s', '--sample', type=int, help='number of sample strings to generate')
+    return parser.parse_args(), parser
 def main():
     #  Match argv for a -g flag with a filepath and -i flag with an input string
-    match argv:
-        case [_, "-grammar", filepath, "-input", input_str] | [_, "-g", filepath, "-i", input_str]:
+    args, argparser = cli()
+    if args.grammar != None:
+        if args.input:
             # Read the json file
-            raw_grammar = read_json_file(filepath)
+            raw_grammar = read_json_file(args.grammar)
             # Pretty print the json
             print(json.dumps(raw_grammar, indent=2))
             # Check if the input string is accepted by the grammar
             grammar = RegularGrammar(**raw_grammar)
-            accepted, path = grammar.test(input_str)
-            print(f"Input:\n{input_str}")
+            accepted, path = grammar.test(args.input)
+            print(f"Input:\n{args.input}")
             print("Path:")
             print(" -> ".join(path))
             print(f"Conclusion: {'Accepted' if accepted  else 'Rejected'}")
-
-        case [_, "-grammar", filepath, "-sample", count] | [_, "-g", filepath, "-s", count]:
+            return
+        elif args.sample:
             run_sample(
-                RegularGrammar(**read_json_file(filepath)), 
-                int(count)
+                RegularGrammar(**read_json_file(args.grammar)), 
+                args.sample
             )
-        case _:
-            print("Usage:\nTo test a string:\n  python main.py -grammar <grammar_file_path> -input <input_str>\nTo generate sample strings:\n  python main.py -grammar <grammar_file_path> -sample <count>")
+            return
+        
+    argparser.print_help()
 if __name__ == '__main__':
     main()
