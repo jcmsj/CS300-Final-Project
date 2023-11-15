@@ -57,7 +57,7 @@ class RegularGrammar:
     
     def try_rules(self, base:str, rules:list[str], index:int, input_str:str):
         """Tries every rule until it finds one that matches the input_str or its prefix and suffix.\n
-        Returns the rule and the new string if it matches the input_str,\n otherwise returns None"""
+        Returns new string if it matches the input_str,\n otherwise returns None"""
         for rule in rules:
             if rule in self.terminals:
                 d = self.replace(base, rule, index)
