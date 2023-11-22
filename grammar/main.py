@@ -99,8 +99,6 @@ class RegularGrammar:
         for char in input_str:
             if char not in self.terminals:
                 raise Exception(f"{char} is not a member of the terminals {self.terminals}")
-        # TODO: check if the terminals are used in the production rules
-        # TODO: check if there are terminals in the production rules that are not listed in the self.terminals
 
         return True
 
